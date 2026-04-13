@@ -876,7 +876,7 @@ async function loadPending(){
     const done=dids.has(q.id);
     const d=document.createElement('div');d.className='qi';
     d.innerHTML='<div class="qi-icon" style="background:'+(done?'#dcfce7':'#eff6ff')+'">'+(done?'✅':'📝')+'</div>'
-      +'<div class="qi-info"><div class="qi-name">'+q.name+'</div><div class="qi-meta">'+q.qCount+'題｜'+DIFF[q.diff]+'｜'+AUD[q.audience]+'</div></div>'
+      +'<div class="qi-info"><div class="qi-name">'+q.name+'</div><div class="qi-meta">'+((q.questions&&q.questions.length)||q.count||0)+'題｜'+DIFF[q.diff]+'｜'+AUD[q.audience]+'</div></div>'
       +'<span class="pill" style="background:'+(done?'#dcfce7':'#fef3c7')+';color:'+(done?'#16a34a':'#d97706')+'">'+(done?'已完成':'未作答')+'</span>';
     if(!done)d.onclick=()=>startQuiz(q);
     el.appendChild(d);cnt++;
@@ -967,7 +967,7 @@ function closeStudyOv(){
 function startQuiz(q){
   pendingQuiz=q;userAnswers={};
   document.getElementById('qtTitle').textContent=q.name;
-  document.getElementById('qtMeta').textContent=q.qCount+'題｜'+DIFF[q.diff]+'｜'+AUD[q.audience];
+  document.getElementById('qtMeta').textContent=((q.questions&&q.questions.length)||q.count||0)+'題｜'+DIFF[q.diff]+'｜'+AUD[q.audience];
   renderQs(q.questions,'qtQs',true);
   showScreen('sQuiz');
 }
@@ -1398,7 +1398,7 @@ async function loadPub(){
     const d=document.createElement('div');d.className='qi';
     d.innerHTML='<div class="qi-icon" style="background:#eff6ff;">📝</div>'
       +'<div class="qi-info"><div class="qi-name">'+q.name+'</div>'
-      +'<div class="qi-meta">'+q.qCount+'題｜'+DIFF[q.diff]+'｜'+AUD[q.audience]+'｜'+q.createdBy+'</div></div>'
+      +'<div class="qi-meta">'+((q.questions&&q.questions.length)||q.count||0)+'題｜'+DIFF[q.diff]+'｜'+AUD[q.audience]+'｜'+q.createdBy+'</div></div>'
       +'<span class="pill" style="background:#dcfce7;color:#16a34a;">已發布</span>';
     if(canDelete){
       const btn=document.createElement('button');
