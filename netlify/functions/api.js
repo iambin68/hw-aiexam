@@ -1,9 +1,4 @@
-let getStore;
-try {
-  ({ getStore } = require('@netlify/blobs'));
-} catch(e) {
-  getStore = null;
-}
+const { getStore } = require('@netlify/blobs');
 
 const CORS = {
   'Content-Type': 'application/json',
@@ -14,6 +9,13 @@ const CORS = {
 
 function blobErr(msg) {
   return { statusCode: 500, headers: CORS, body: JSON.stringify({ ok: false, error: msg }) };
+}
+
+function getConfiguredStore() {
+  const siteID = process.env.NETLIFY_SITE_ID || '5e74bd0e-8fe4-41da-8729-5cf4bb327c0e';
+  const token  = process.env.NETLIFY_TOKEN;
+  if (!token) throw new Error('NETLIFY_TOKEN 環境變數未設定');
+  return getStore({ name: 'platform', siteID, token });
 }
 
 exports.handler = async function(event) {
@@ -30,10 +32,9 @@ exports.handler = async function(event) {
 
   // ── Blob 儲存操作 ──
   if (['blob_get','blob_set','blob_del','blob_list'].includes(body.action)) {
-    if (!getStore) return blobErr('@netlify/blobs 套件未安裝，請確認 netlify.toml 設定 node_bundler=esbuild');
     let store;
-    try { store = getStore('platform'); }
-    catch(e) { return blobErr('getStore 失敗：' + e.message); }
+    try { store = getConfiguredStore(); }
+    catch(e) { return blobErr(e.message); }
 
     if (body.action === 'blob_get') {
       try {
@@ -78,7 +79,7 @@ exports.handler = async function(event) {
     return {
       statusCode: 500,
       headers: CORS,
-      body: JSON.stringify({ error: { message: 'API Key 未設定，請在 Netlify 環境變數中設定 ANTHROPIC_API_KEY' } })
+      body: JSON.stringify({ error: { message: 'API Key 未設定' } })
     };
   }
 
@@ -95,6 +96,6 @@ exports.handler = async function(event) {
     const data = await response.json();
     return { statusCode: response.status, headers: CORS, body: JSON.stringify(data) };
   } catch (err) {
-    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: { message: '代理伺服器錯誤：' + err.message } }) };
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: { message: err.message } }) };
   }
 };
