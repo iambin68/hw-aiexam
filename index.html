@@ -219,6 +219,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--tx);
     <div class="nav-tabs">
       <button class="nt on" type="button" onclick="staffTab('pending')">📋 待測驗</button>
       <button class="nt"    type="button" onclick="staffTab('done')">✅ 已完成</button>
+      <button class="nt"    type="button" onclick="staffTab('study')">📚 教材複習</button>
     </div>
   </div>
   <div id="tPending">
@@ -228,6 +229,18 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--tx);
     <div id="pendingList"></div>
   </div>
   <div id="tDone" style="display:none;"><div id="doneList"></div></div>
+  <div id="tStudy" style="display:none;">
+    <div class="chips" id="studyCatFilter" style="margin-bottom:11px;">
+      <button type="button" class="chip on" data-cat="" onclick="studyFilter(this)">全部</button>
+      <button type="button" class="chip" data-cat="技術類" onclick="studyFilter(this)">🔧 技術類</button>
+      <button type="button" class="chip" data-cat="作業規範" onclick="studyFilter(this)">📋 作業規範</button>
+      <button type="button" class="chip" data-cat="業務推廣" onclick="studyFilter(this)">💬 業務推廣</button>
+      <button type="button" class="chip" data-cat="安全規範" onclick="studyFilter(this)">⛑️ 安全規範</button>
+      <button type="button" class="chip" data-cat="設備說明" onclick="studyFilter(this)">🖥️ 設備說明</button>
+      <button type="button" class="chip" data-cat="其他" onclick="studyFilter(this)">📌 其他</button>
+    </div>
+    <div id="studyList"></div>
+  </div>
 </div>
 
 <!-- QUIZ -->
@@ -520,6 +533,17 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--tx);
       <button onclick="skipMigrate()" style="padding:10px 22px;border-radius:8px;border:1.5px solid #ddd;background:#f5f5f5;color:#555;font-size:14px;cursor:pointer;">略過（不搬）</button>
       <button onclick="doMigrate()" id="migratBtn" style="padding:10px 26px;border-radius:8px;border:none;background:#1a6fd8;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">✅ 立即搬移到雲端</button>
     </div>
+  </div>
+</div>
+<!-- 教材閱讀覆蓋層 -->
+<div id="studyOv" style="display:none;position:fixed;inset:0;background:#f0f2f5;z-index:150;overflow-y:auto;">
+  <div style="max-width:860px;margin:0 auto;display:flex;flex-direction:column;min-height:100%;">
+    <div style="background:var(--ac);color:#fff;padding:11px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;box-shadow:0 2px 6px rgba(0,0,0,.15);">
+      <button type="button" onclick="closeStudyOv()" class="tb-btn">← 返回</button>
+      <div style="flex:1;font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="studyOvTitle"></div>
+      <span id="studyOvCat" style="font-size:11px;background:rgba(255,255,255,.18);padding:2px 9px;border-radius:100px;flex-shrink:0;"></span>
+    </div>
+    <div style="padding:18px 16px 60px;font-size:14px;line-height:2;white-space:pre-wrap;word-break:break-word;background:#fff;margin:14px;border-radius:12px;border:1px solid var(--bd);box-shadow:0 1px 4px rgba(0,0,0,.04);" id="studyOvBody"></div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -874,10 +898,69 @@ async function loadDone(){
   }
 }
 function staffTab(t){
-  document.querySelectorAll('#sStaff .nt').forEach((b,i)=>b.classList.toggle('on',i===(t==='pending'?0:1)));
+  const tabs=['pending','done','study'];
+  document.querySelectorAll('#sStaff .nt').forEach((b,i)=>b.classList.toggle('on',i===tabs.indexOf(t)));
   document.getElementById('tPending').style.display=t==='pending'?'':'none';
   document.getElementById('tDone').style.display=t==='done'?'':'none';
+  document.getElementById('tStudy').style.display=t==='study'?'':'none';
   if(t==='done')loadDone();
+  if(t==='study')loadStudyMats();
+}
+
+// ══ STUDY MATERIALS (staff read-only) ══
+let studyMats=[];
+let studyCatVal='';
+
+async function loadStudyMats(){
+  const el=document.getElementById('studyList');
+  el.innerHTML='<div class="empty"><div class="ei">⏳</div>載入中...</div>';
+  const index=await sg('mgr_idx:global');
+  if(!index||!Array.isArray(index)||!index.length){
+    el.innerHTML='<div class="empty"><div class="ei">📂</div>尚無可閱讀的教材</div>';return;
+  }
+  studyMats=index.filter(m=>!m.archived);
+  renderStudyList();
+}
+
+function renderStudyList(){
+  const el=document.getElementById('studyList');
+  const visible=studyCatVal?studyMats.filter(m=>m.cat===studyCatVal):studyMats;
+  if(!studyMats.length){el.innerHTML='<div class="empty"><div class="ei">📂</div>尚無可閱讀的教材</div>';return;}
+  if(!visible.length){el.innerHTML='<div class="empty"><div class="ei">🔍</div>此分類沒有教材</div>';return;}
+  el.innerHTML='';
+  visible.forEach(m=>{
+    const catBadge=m.cat?'<span style="font-size:10px;background:#f0f4ff;color:#4f6ef7;padding:2px 8px;border-radius:100px;font-weight:700;">'+m.cat+'</span>':'';
+    const d=document.createElement('div');d.className='qi';
+    d.innerHTML='<div class="qi-icon" style="background:#eff6ff;font-size:19px;">📄</div>'
+      +'<div class="qi-info"><div class="qi-name">'+m.name+'</div>'
+      +'<div class="qi-meta" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:3px;">'
+      +catBadge+'<span>'+(m.len||0)+'字｜'+new Date(m.ts).toLocaleDateString('zh-TW')+'</span></div></div>'
+      +'<span style="color:var(--mu);font-size:20px;flex-shrink:0;">›</span>';
+    d.onclick=()=>openStudyMat(m.id,m.name,m.cat);
+    el.appendChild(d);
+  });
+}
+
+function studyFilter(el){
+  document.querySelectorAll('#studyCatFilter .chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  studyCatVal=el.dataset.cat||'';
+  renderStudyList();
+}
+
+async function openStudyMat(id,name,cat){
+  const ov=document.getElementById('studyOv');
+  document.getElementById('studyOvTitle').textContent=name;
+  document.getElementById('studyOvCat').textContent=cat||'';
+  document.getElementById('studyOvBody').textContent='載入中...';
+  ov.scrollTop=0;
+  ov.style.display='block';
+  const mat=await sg('mgr_mat:global:'+id);
+  document.getElementById('studyOvBody').textContent=mat&&mat.text?mat.text:'（內容無法讀取，請聯絡主管重新上傳）';
+}
+
+function closeStudyOv(){
+  document.getElementById('studyOv').style.display='none';
 }
 
 // ══ QUIZ TAKING ══
