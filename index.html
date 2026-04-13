@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>AI 現場知識驗收平台</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+:root{
+  --bg:#f0f2f5;--sf:#fff;--s2:#f8f9fb;--bd:#e4e7ec;
+  --ac:#1a4f8a;--a2:#2563eb;--al:#eff6ff;
+  --gn:#16a34a;--gb:#dcfce7;--rd:#dc2626;--rb:#fee2e2;
+  --am:#d97706;--ab:#fef3c7;
+  --tx:#111827;--mu:#6b7280;--dm:#9ca3af;
+  --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;}
+.topbar{background:var(--ac);color:#fff;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+.tb{max-width:860px;margin:0 auto;padding:11px 16px;display:flex;align-items:center;gap:10px;}
+.tb-logo{width:32px;height:32px;background:rgba(255,255,255,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.tb-title{font-size:15px;font-weight:700;flex:1;}
+.tb-user{font-size:11px;opacity:.75;font-family:var(--mono);line-height:1.4;text-align:right;}
+.tb-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:5px 12px;border-radius:7px;font-size:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;}
+.warn{background:#fef3c7;border-bottom:1px solid #fde68a;padding:7px 16px;text-align:center;font-size:12px;color:#92400e;display:none;}
+.warn.on{display:block;}
+.screen{display:none;max-width:860px;margin:0 auto;padding:18px 14px 80px;}
+.screen.active{display:block;}
+
+/* login */
+.lw{max-width:400px;margin:36px auto 0;}
+.lhero{text-align:center;margin-bottom:26px;}
+.li{width:68px;height:68px;background:linear-gradient(135deg,var(--ac),var(--a2));border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:34px;margin:0 auto 14px;box-shadow:0 8px 24px rgba(26,79,138,.3);}
+.lhero h1{font-size:20px;font-weight:900;color:var(--ac);}
+.lhero p{font-size:12px;color:var(--mu);margin-top:3px;}
+.lcard{background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.06);}
+.fl{font-size:11px;font-weight:700;color:var(--mu);margin-bottom:5px;letter-spacing:.5px;text-transform:uppercase;}
+.fi{width:100%;padding:10px 13px;border:1px solid var(--bd);border-radius:9px;background:var(--s2);font-family:'Noto Sans TC',sans-serif;font-size:14px;color:var(--tx);transition:border-color .2s;margin-bottom:12px;}
+.fi:focus{outline:none;border-color:var(--a2);background:#fff;}
+.fi::placeholder{color:var(--dm);}
+.rrow{display:flex;gap:8px;margin-bottom:15px;}
+.rb{flex:1;padding:10px;border:2px solid var(--bd);border-radius:10px;background:var(--s2);font-family:'Noto Sans TC',sans-serif;font-size:13px;cursor:pointer;transition:all .15s;text-align:center;}
+.rb.on{border-color:var(--a2);background:var(--al);color:var(--a2);font-weight:700;}
+.hbox{font-size:12px;color:var(--dm);margin-bottom:13px;padding:8px 12px;background:#fffbeb;border-radius:8px;border:1px solid #fde68a;line-height:1.7;}
+
+/* common */
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:18px;margin-bottom:13px;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+.ct{font-size:11px;font-weight:700;color:var(--ac);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;padding-bottom:9px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:7px;}
+.nav-tabs{display:flex;background:var(--sf);border:1px solid var(--bd);border-radius:11px;padding:3px;gap:3px;overflow-x:auto;}
+.nt{flex:1;min-width:60px;padding:8px 8px;border:none;border-radius:8px;background:transparent;font-family:'Noto Sans TC',sans-serif;font-size:12px;cursor:pointer;color:var(--mu);transition:all .15s;white-space:nowrap;text-align:center;}
+.nt.on{background:var(--ac);color:#fff;font-weight:700;box-shadow:0 2px 6px rgba(26,79,138,.25);}
+.nav-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.nav-row .nav-tabs{flex:1;margin-bottom:0;}
+.btn{padding:10px 15px;border-radius:9px;border:1px solid var(--bd);background:var(--s2);font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:600;color:var(--tx);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:5px;}
+.btn:hover{border-color:var(--a2);background:var(--al);}
+.btn:disabled{opacity:.3;cursor:not-allowed;}
+.btn.pri{background:var(--ac);border-color:var(--ac);color:#fff;box-shadow:0 2px 8px rgba(26,79,138,.25);}
+.btn.pri:hover{background:var(--a2);border-color:var(--a2);}
+.btn.suc{background:var(--gn);border-color:var(--gn);color:#fff;}
+.btn.dng{border-color:rgba(220,38,38,.25);color:var(--rd);}
+.btn.full{width:100%;}
+.br{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.sel{width:100%;padding:9px 11px;border:1px solid var(--bd);border-radius:8px;background:var(--s2);font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--tx);}
+.sel:focus{outline:none;border-color:var(--a2);}
+.tx{width:100%;padding:11px 13px;border:1px solid var(--bd);border-radius:9px;background:var(--s2);font-family:'Noto Sans TC',sans-serif;font-size:13px;line-height:1.8;resize:vertical;min-height:100px;transition:border-color .2s;}
+.tx:focus{outline:none;border-color:var(--a2);background:#fff;}
+.tx::placeholder{color:var(--dm);}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px;}
+.chip{padding:5px 11px;border-radius:6px;border:2px solid var(--bd);background:var(--s2);font-size:12px;cursor:pointer;transition:all .15s;user-select:none;}
+.chip.on{border-color:var(--a2);background:var(--al);color:var(--a2);font-weight:700;}
+.lbl{font-size:11px;font-weight:700;color:var(--mu);letter-spacing:.5px;text-transform:uppercase;margin-bottom:7px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+@media(max-width:440px){.g2{grid-template-columns:1fr;}}
+.sep{height:1px;background:var(--bd);margin:11px 0;}
+.empty{text-align:center;padding:32px 16px;color:var(--dm);}
+.ei{font-size:34px;margin-bottom:7px;}
+
+/* file items */
+.fi-item{display:flex;align-items:center;gap:9px;padding:8px 10px;background:var(--s2);border-radius:8px;margin-bottom:6px;border:1px solid var(--bd);}
+.fi-info{flex:1;min-width:0;}
+.fi-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.fi-sub{font-size:11px;margin-top:1px;}
+
+/* mat select */
+.mi{background:var(--sf);border:2px solid var(--bd);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:11px;margin-bottom:8px;cursor:pointer;transition:all .15s;}
+.mi:hover{border-color:var(--a2);}
+.mi.on{border-color:var(--a2);background:var(--al);}
+.mchk{width:20px;height:20px;border-radius:5px;border:2px solid var(--bd);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;transition:all .15s;}
+.mchk.on{background:var(--a2);border-color:var(--a2);color:#fff;}
+.minfo{flex:1;min-width:0;}
+.mname{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.msub{font-size:11px;color:var(--mu);font-family:var(--mono);margin-top:2px;}
+
+/* quiz items */
+.qi{background:var(--sf);border:1px solid var(--bd);border-radius:11px;padding:13px;display:flex;align-items:center;gap:11px;cursor:pointer;transition:all .15s;margin-bottom:8px;}
+.qi:hover{border-color:var(--a2);box-shadow:0 2px 10px rgba(37,99,235,.07);}
+.qi-icon{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+.qi-info{flex:1;}
+.qi-name{font-size:14px;font-weight:700;}
+.qi-meta{font-size:11px;color:var(--mu);margin-top:3px;font-family:var(--mono);}
+.pill{padding:3px 9px;border-radius:100px;font-size:11px;font-weight:700;white-space:nowrap;}
+
+/* questions */
+.qc{background:var(--sf);border:1px solid var(--bd);border-radius:11px;margin-bottom:10px;overflow:hidden;}
+.qh{display:flex;align-items:flex-start;gap:9px;padding:13px 15px 8px;}
+.qn{min-width:26px;height:26px;background:var(--ac);color:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:var(--mono);flex-shrink:0;}
+.qbadge{padding:2px 6px;border-radius:4px;font-size:9px;font-weight:700;text-transform:uppercase;flex-shrink:0;margin-top:3px;}
+.qbadge.mc{background:var(--al);color:var(--a2);}
+.qbadge.tf{background:var(--ab);color:var(--am);}
+.qbadge.sa{background:var(--gb);color:var(--gn);}
+.qt{font-size:14px;font-weight:600;line-height:1.7;flex:1;}
+.qopts{padding:0 15px 6px 50px;}
+.qo{display:flex;align-items:flex-start;gap:8px;padding:6px 9px;border-radius:7px;font-size:13px;line-height:1.6;cursor:pointer;transition:background .15s;margin-bottom:2px;border:2px solid transparent;}
+.qo:hover{background:#f8faff;}
+.qo.sel{background:var(--al);border-color:var(--a2);}
+.qo.correct{background:var(--gb);border-color:var(--gn);}
+.qo.wrong{background:var(--rb);border-color:var(--rd);}
+.ql{width:21px;height:21px;border:2px solid var(--bd);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;font-family:var(--mono);flex-shrink:0;transition:all .15s;}
+.qo.sel .ql{border-color:var(--a2);background:var(--a2);color:#fff;}
+.qo.correct .ql{border-color:var(--gn);background:var(--gn);color:#fff;}
+.qo.wrong .ql{border-color:var(--rd);background:var(--rd);color:#fff;}
+.qans{margin:3px 15px 10px 50px;padding:9px 12px;background:var(--gb);border-radius:8px;font-size:13px;color:var(--gn);font-weight:600;display:none;border-left:3px solid var(--gn);line-height:1.7;}
+.qans.show{display:block;}
+.qexp{margin:0 15px 10px 50px;padding:8px 12px;background:#f0f9ff;border-radius:8px;font-size:12px;color:#0369a1;line-height:1.7;display:none;border-left:3px solid #0ea5e9;}
+.qexp.show{display:block;}
+.qsai{width:calc(100% - 34px);margin:0 15px 10px 50px;padding:8px 11px;border:1px solid var(--bd);border-radius:8px;font-family:'Noto Sans TC',sans-serif;font-size:13px;resize:vertical;min-height:70px;background:var(--s2);}
+.qsai:focus{outline:none;border-color:var(--a2);}
+
+/* score / review */
+.sp{background:linear-gradient(135deg,var(--ac),#1d4ed8);color:#fff;border-radius:14px;padding:24px;text-align:center;margin-bottom:14px;}
+.sb{font-size:48px;font-weight:900;font-family:var(--mono);}
+.sg{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:13px;}
+@media(min-width:480px){.sg{grid-template-columns:repeat(4,1fr);}}
+.sc{background:var(--sf);border:1px solid var(--bd);border-radius:11px;padding:13px;text-align:center;}
+.sn{font-size:25px;font-weight:900;font-family:var(--mono);}
+.rr{display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid var(--bd);transition:background .15s;}
+.rr:hover{background:var(--s2);}
+.rr:last-child{border-bottom:none;}
+.ra{width:33px;height:33px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.ri{flex:1;}
+.rn{font-size:13px;font-weight:700;}
+.rs{font-size:11px;color:var(--mu);font-family:var(--mono);margin-top:2px;}
+.rv{font-family:var(--mono);font-size:13px;font-weight:700;}
+.pass{color:var(--gn);}.fail{color:var(--rd);}
+
+/* drop zone */
+.dz{border:2px dashed var(--bd);border-radius:11px;padding:22px;text-align:center;cursor:pointer;transition:all .2s;background:var(--s2);}
+.dz:hover,.dz.ov{border-color:var(--a2);background:var(--al);}
+
+/* overlay/toast */
+.ov-wrap{display:none;position:fixed;inset:0;background:rgba(240,242,245,.92);z-index:100;align-items:center;justify-content:center;flex-direction:column;gap:12px;backdrop-filter:blur(3px);}
+.ov-wrap.show{display:flex;}
+.spin{width:38px;height:38px;border:3px solid var(--bd);border-top-color:var(--a2);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin-t{font-size:13px;color:var(--mu);}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(60px);background:#111827;color:#fff;padding:9px 18px;border-radius:9px;font-size:13px;transition:transform .3s;z-index:200;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div class="warn" id="warnBar">
+  ⚠️ 本機開啟模式：AI 出題需部署到 Netlify 才能運作
+  <a href="https://netlify.com" target="_blank" style="color:var(--ac);font-weight:700;margin-left:6px;">前往 Netlify →</a>
+</div>
+
+<div class="topbar">
+  <div class="tb">
+    <div class="tb-logo">📚</div>
+    <div class="tb-title">AI 現場知識驗收平台</div>
+    <div class="tb-user" id="tbUser" style="display:none"></div>
+    <button class="tb-btn" id="tbOut" type="button" style="display:none" onclick="logout()">登出</button>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div class="screen active" id="sLogin">
+  <div class="lw">
+    <div class="lhero">
+      <div class="li">📚</div>
+      <h1>知識驗收平台</h1>
+      <p>宏華國際 · 網路事業組織</p>
+    </div>
+    <div class="lcard">
+      <div class="fl">工號</div>
+      <input class="fi" id="lId" type="text" placeholder="請輸入工號">
+
+      <!-- Demo mode: 需要填單位代號 + 選身份 -->
+      <div id="demoWrap">
+        <div class="fl">單位代號</div>
+        <input class="fi" id="lCode" type="text" placeholder="例：DA240121" maxlength="8"
+          oninput="this.value=this.value.toUpperCase();parseCode(this.value)">
+        <div class="hbox" id="cHint">輸入 8 碼單位代號，前 5 碼為部級、後 3 碼為隊級</div>
+        <div class="fl" style="margin-bottom:7px;">登入身份</div>
+        <div class="rrow">
+          <button class="rb on" id="rStaff" type="button" onclick="setRole('staff')">👷 隊員</button>
+          <button class="rb" id="rMgr" type="button" onclick="setRole('manager')">👔 主管</button>
+        </div>
+      </div>
+
+      <!-- Strict mode: 自動識別，不需額外輸入 -->
+      <div id="strictWrap" style="display:none;">
+        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:9px;padding:10px 13px;font-size:12px;color:#166534;margin-bottom:13px;">
+          ✅ 系統已載入人力資料，身份與單位將自動識別
+        </div>
+      </div>
+
+      <button class="btn pri full" type="button" onclick="doLogin()">🔐 登入</button>
+    </div>
+    <div style="text-align:center;margin-top:11px;font-size:11px;color:var(--dm);" id="loginHint">
+      Demo 模式：任何工號皆可登入並自選身份
+    </div>
+  </div>
+</div>
+
+<!-- STAFF -->
+<div class="screen" id="sStaff">
+  <div class="nav-row">
+    <div class="nav-tabs">
+      <button class="nt on" type="button" onclick="staffTab('pending')">📋 待測驗</button>
+      <button class="nt"    type="button" onclick="staffTab('done')">✅ 已完成</button>
+    </div>
+  </div>
+  <div id="tPending">
+    <div style="background:var(--al);border:1px solid #bfdbfe;border-radius:9px;padding:9px 13px;font-size:12px;color:#1d4ed8;margin-bottom:11px;line-height:1.7;">
+      💡 主管發布題庫後，測驗會自動出現在此清單。
+    </div>
+    <div id="pendingList"></div>
+  </div>
+  <div id="tDone" style="display:none;"><div id="doneList"></div></div>
+</div>
+
+<!-- QUIZ -->
+<div class="screen" id="sQuiz">
+  <div class="card" style="margin-bottom:12px;">
+    <div style="font-size:15px;font-weight:700;" id="qtTitle"></div>
+    <div style="font-size:12px;color:var(--mu);font-family:var(--mono);margin-top:3px;" id="qtMeta"></div>
+  </div>
+  <div id="qtQs"></div>
+  <div class="br">
+    <button class="btn" type="button" onclick="goBack()">← 返回</button>
+    <button class="btn pri" type="button" onclick="submitQuiz()">📊 交卷計分</button>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="sResult">
+  <div class="sp" id="scorePanel"></div>
+  <div id="resultQs"></div>
+  <div class="br"><button class="btn pri" type="button" onclick="backToMain()">← 返回主頁</button></div>
+</div>
+
+<!-- MANAGER -->
+<div class="screen" id="sMgr">
+  <div class="nav-row">
+    <div class="nav-tabs">
+      <button class="nt on" type="button" onclick="mgrTab('mats')">📂 教材庫</button>
+      <button class="nt"    type="button" onclick="mgrTab('create')">✨ 出題</button>
+      <button class="nt"    type="button" onclick="mgrTab('pub')">📚 已發布</button>
+      <button class="nt"    type="button" onclick="mgrTab('review')">📊 複查</button>
+      <button class="nt"    type="button" id="ntAdmin" style="display:none;" onclick="mgrTab('admin')">⚙️ 管理</button>
+    </div>
+  </div>
+
+  <!-- ── 教材庫 ── -->
+  <div id="tMats">
+    <div class="card">
+      <div class="ct">📤 上傳新教材</div>
+      <!-- 格式說明 -->
+      <div style="background:#f8faff;border:1px solid #dbeafe;border-radius:9px;padding:11px 13px;margin-bottom:12px;font-size:12px;line-height:1.9;color:#374151;">
+        <div style="font-weight:700;color:var(--ac);margin-bottom:4px;">📋 支援格式</div>
+        <div>✅ <b>.txt .docx .doc</b> — 直接解析全文</div>
+        <div>✅ <b>.pdf</b> — 自動擷取文字</div>
+        <div>✅ <b>.jpg .png .gif .webp</b> — AI 辨識圖片文字（需 Netlify）</div>
+        <div style="background:#fff7ed;border-radius:7px;padding:8px 10px;margin-top:7px;border-left:3px solid #f59e0b;color:#92400e;">
+          📊 <b>PPT/PPTX</b> 請先轉換：<br>
+          &nbsp;① PowerPoint → 另存新檔 → 選 <b>PDF</b> → 上傳 PDF<br>
+          &nbsp;② 或 另存新檔 → <b>PNG 圖片</b>（每頁一張逐張上傳）
+        </div>
+      </div>
+      <!-- 教材分類 -->
+      <div style="margin-bottom:11px;">
+        <div class="lbl" style="margin-bottom:5px;">上傳分類（選填，便於管理）</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="upCatRow">
+          <button type="button" class="chip on" data-cat="技術類" onclick="selectCat(this)">🔧 技術類</button>
+          <button type="button" class="chip" data-cat="作業規範" onclick="selectCat(this)">📋 作業規範</button>
+          <button type="button" class="chip" data-cat="業務推廣" onclick="selectCat(this)">💬 業務推廣</button>
+          <button type="button" class="chip" data-cat="安全規範" onclick="selectCat(this)">⛑️ 安全規範</button>
+          <button type="button" class="chip" data-cat="設備說明" onclick="selectCat(this)">🖥️ 設備說明</button>
+          <button type="button" class="chip" data-cat="其他" onclick="selectCat(this)">📌 其他</button>
+        </div>
+      </div>
+      <!-- 切換上傳方式 -->
+      <div style="display:flex;gap:6px;margin-bottom:11px;">
+        <button type="button" id="tabF" class="btn" style="flex:1;font-size:12px;padding:8px;" onclick="upTab('file')">📂 選取檔案</button>
+        <button type="button" id="tabU" class="btn" style="flex:1;font-size:12px;padding:8px;" onclick="upTab('url')">🔗 輸入網址</button>
+      </div>
+      <!-- 選取檔案 -->
+      <div id="upFile">
+        <div class="dz" id="dz"
+          onclick="document.getElementById('fInp').click()"
+          ondragover="event.preventDefault();this.classList.add('ov')"
+          ondragleave="this.classList.remove('ov')"
+          ondrop="this.classList.remove('ov');dropFiles(event)">
+          <div style="font-size:26px;margin-bottom:7px;">📂</div>
+          <div style="font-size:14px;font-weight:700;color:var(--ac);">點擊選取或拖曳本機檔案</div>
+          <div style="font-size:11px;color:var(--mu);margin-top:3px;">可一次多選 · .txt .pdf .docx .jpg .png</div>
+        </div>
+        <input type="file" id="fInp" style="display:none"
+          accept=".txt,.pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp" multiple
+          onchange="addFiles(this.files)">
+      </div>
+      <!-- 輸入網址 -->
+      <div id="upUrl" style="display:none;">
+        <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:9px;padding:11px 13px;margin-bottom:9px;font-size:12px;color:#0369a1;line-height:1.8;">
+          <b>📌 Google 雲端硬碟步驟：</b><br>
+          ① 對檔案按右鍵 → 共用 → 「知道連結的人」可檢視<br>
+          ② 複製連結，貼入下方<br>
+          <span style="color:var(--am);font-size:11px;">⚠️ 瀏覽器安全限制，無法直接從雲端拖曳，須透過共用連結匯入或先下載後上傳</span>
+        </div>
+        <div style="display:flex;gap:7px;">
+          <input class="fi" id="urlIn" type="text" style="flex:1;margin-bottom:0;" placeholder="貼上 Google Drive 共用連結或公開網址...">
+          <button type="button" class="btn pri" style="white-space:nowrap;" onclick="fetchUrl()">📥 匯入</button>
+        </div>
+        <div style="font-size:11px;color:var(--dm);margin-top:5px;">※ 需 Netlify 環境，且檔案須設為公開存取</div>
+      </div>
+    </div>
+    <!-- 已儲存教材列表 -->
+    <div class="card">
+      <div class="ct">📚 已儲存教材</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:11px;" id="catFilter">
+        <button type="button" class="chip on" data-filter="" onclick="setCatFilter(this)">全部</button>
+        <button type="button" class="chip" data-filter="技術類" onclick="setCatFilter(this)">🔧 技術類</button>
+        <button type="button" class="chip" data-filter="作業規範" onclick="setCatFilter(this)">📋 作業規範</button>
+        <button type="button" class="chip" data-filter="業務推廣" onclick="setCatFilter(this)">💬 業務推廣</button>
+        <button type="button" class="chip" data-filter="安全規範" onclick="setCatFilter(this)">⛑️ 安全規範</button>
+        <button type="button" class="chip" data-filter="設備說明" onclick="setCatFilter(this)">🖥️ 設備說明</button>
+        <button type="button" class="chip" data-filter="其他" onclick="setCatFilter(this)">📌 其他</button>
+      </div>
+      <div id="matList"><div class="empty"><div class="ei">📂</div>尚未上傳教材</div></div>
+    </div>
+  </div>
+
+  <!-- ── 出題 ── -->
+  <div id="tCreate" style="display:none;">
+    <div style="background:var(--al);border:1px solid #bfdbfe;border-radius:9px;padding:10px 13px;margin-bottom:13px;font-size:12px;color:#1d4ed8;line-height:1.7;">
+      📌 <b>出題流程：</b>①先至「教材庫」上傳教材 → ②下方勾選教材 → ③設定條件 → ④AI 自動出題
+    </div>
+    <!-- 勾選教材 -->
+    <div class="card">
+      <div class="ct">① 選擇教材（可勾選多份）</div>
+      <div id="matSel"><div class="empty"><div class="ei">📂</div>尚無教材，請先至「教材庫」上傳</div></div>
+      <div style="font-size:11px;color:var(--mu);margin-top:8px;font-family:var(--mono);" id="selInfo">已選 0 份，合計 0 字</div>
+    </div>
+    <!-- 設定條件 -->
+    <div class="card">
+      <div class="ct">② 設定出題條件</div>
+      <div class="lbl" style="margin-bottom:5px;">類別標籤</div>
+      <div style="font-size:11px;color:var(--mu);margin-bottom:4px;">大類</div>
+      <div class="chips" id="catM">
+        <div class="chip on" onclick="this.classList.toggle('on')">🔧 技術類</div>
+        <div class="chip" onclick="this.classList.toggle('on')">📋 作業規範</div>
+        <div class="chip" onclick="this.classList.toggle('on')">💬 業務推廣</div>
+        <div class="chip" onclick="this.classList.toggle('on')">📌 其他</div>
+      </div>
+      <div style="font-size:11px;color:var(--mu);margin-bottom:4px;">小類</div>
+      <div class="chips" id="catS">
+        <div class="chip on" onclick="this.classList.toggle('on')">光纖查修</div>
+        <div class="chip" onclick="this.classList.toggle('on')">CPE 設備</div>
+        <div class="chip" onclick="this.classList.toggle('on')">WiFi-AP</div>
+        <div class="chip" onclick="this.classList.toggle('on')">智慧電表 AMI</div>
+        <div class="chip" onclick="this.classList.toggle('on')">工單系統</div>
+        <div class="chip" onclick="this.classList.toggle('on')">安全規範</div>
+        <div class="chip" onclick="this.classList.toggle('on')">客服話術</div>
+      </div>
+      <div style="height:1px;background:var(--bd);margin:11px 0;"></div>
+      <div class="g2" style="margin-bottom:10px;">
+        <div>
+          <div class="fl" style="margin-bottom:4px;">測驗對象</div>
+          <select class="sel" id="aud" onchange="autoDiff()">
+            <option value="new">🆕 新進人員（1年內）</option>
+            <option value="mid">👷 熟手（1～3年）</option>
+            <option value="senior">⭐ 資深（3年以上）</option>
+            <option value="transfer">🔄 轉型人員</option>
+          </select>
+        </div>
+        <div>
+          <div class="fl" style="margin-bottom:4px;">難度</div>
+          <select class="sel" id="diff">
+            <option value="easy">初階</option>
+            <option value="mid" selected>中階</option>
+            <option value="hard">進階</option>
+          </select>
+        </div>
+        <div>
+          <div class="fl" style="margin-bottom:4px;">題數</div>
+          <select class="sel" id="qCnt">
+            <option value="5">5 題</option>
+            <option value="10" selected>10 題</option>
+            <option value="15">15 題</option>
+            <option value="20">20 題</option>
+          </select>
+        </div>
+        <div>
+          <div class="fl" style="margin-bottom:4px;">題型</div>
+          <select class="sel" id="qTyp">
+            <option value="mix" selected>混合（選擇＋是非＋問答）</option>
+            <option value="mc">全部選擇題</option>
+            <option value="tf">全部是非題</option>
+          </select>
+        </div>
+      </div>
+      <div class="fl" style="margin-bottom:4px;">測驗名稱</div>
+      <input class="fi" id="qName" type="text" placeholder="例：光纖設備驗收 115年第一梯" style="margin-bottom:0;">
+    </div>
+    <button class="btn pri full" type="button" onclick="genQuiz()">✨ AI 自動出題</button>
+    <!-- 預覽 -->
+    <div class="card" id="prevCard" style="display:none;margin-top:13px;">
+      <div class="ct">👁️ 題目預覽（確認後發布）</div>
+      <div id="prevQs"></div>
+      <div class="br">
+        <button class="btn dng" type="button" onclick="cancelPrev()">✗ 重新出題</button>
+        <button class="btn suc" type="button" onclick="pubQuiz()">✅ 確認發布</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 已發布 ── -->
+  <div id="tPub" style="display:none;">
+    <div class="lbl">已發布的題庫</div>
+    <div id="pubList"></div>
+  </div>
+
+  <!-- ── 複查 ── -->
+  <div id="tReview" style="display:none;">
+    <div class="card" style="padding:13px;">
+      <div class="sg">
+        <div class="sc"><div class="sn" id="stT">0</div><div style="font-size:11px;color:var(--mu);">總人次</div></div>
+        <div class="sc"><div class="sn pass" id="stP">0</div><div style="font-size:11px;color:var(--mu);">通過</div></div>
+        <div class="sc"><div class="sn fail" id="stF">0</div><div style="font-size:11px;color:var(--mu);">未通過</div></div>
+        <div class="sc"><div class="sn" style="color:var(--a2)" id="stR">0%</div><div style="font-size:11px;color:var(--mu);">通過率</div></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:13px;align-items:center;">
+      <select class="sel" style="flex:1;min-width:120px;" id="fDept" onchange="loadReview()"><option value="">所有部門</option></select>
+      <select class="sel" style="flex:1;min-width:120px;" id="fAud"  onchange="loadReview()">
+        <option value="">所有對象</option>
+        <option value="new">新進人員</option><option value="mid">熟手</option>
+        <option value="senior">資深</option><option value="transfer">轉型人員</option>
+      </select>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;"><div id="revList"></div></div>
+    <div class="br" style="margin-top:12px;">
+      <button class="btn suc" type="button" onclick="downloadReport()">📥 下載測驗結果報表（Excel）</button>
+    </div>
+  </div>
+  <!-- ── 管理（superadmin only）── -->
+  <div id="tAdmin" style="display:none;">
+    <!-- 上傳人力表 -->
+    <div class="card">
+      <div class="ct">👥 人力資料管理</div>
+      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:9px;padding:11px 13px;margin-bottom:12px;font-size:12px;color:#166534;line-height:1.8;">
+        <b>Excel 格式說明：</b>欄位順序需包含「部門代號（C欄）」「身分（E欄）」「員工編號（G欄）」「中文姓名（H欄）」<br>
+        身分欄：「隊長」→主管　「隊員/新進/正式任用未接區」→隊員<br>
+        可多次上傳不同部門的 Excel，系統自動合併。
+      </div>
+      <div class="dz" id="staffDz"
+        onclick="document.getElementById('staffInp').click()"
+        ondragover="event.preventDefault();this.classList.add('ov')"
+        ondragleave="this.classList.remove('ov')"
+        ondrop="this.classList.remove('ov');dropStaff(event)">
+        <div style="font-size:26px;margin-bottom:7px;">📊</div>
+        <div style="font-size:14px;font-weight:700;color:var(--ac);">點擊或拖曳上傳人力 Excel</div>
+        <div style="font-size:11px;color:var(--mu);margin-top:3px;">支援 .xlsx .xls</div>
+      </div>
+      <input type="file" id="staffInp" style="display:none" accept=".xlsx,.xls" onchange="uploadStaff(this.files[0])">
+      <div id="staffStatus" style="margin-top:10px;"></div>
+    </div>
+    <!-- 高階名單 -->
+    <div class="card">
+      <div class="ct">🔑 高階權限名單</div>
+      <div style="background:#f8faff;border:1px solid #dbeafe;border-radius:9px;padding:11px 13px;margin-bottom:12px;font-size:12px;color:#1d4ed8;line-height:1.8;">
+        上傳高階名單 Excel，欄位：「工號」「姓名」「角色（superadmin）」<br>
+        此名單中的工號不受一般人力表限制，可查看所有部門資料。
+      </div>
+      <div class="dz" id="adminDz"
+        onclick="document.getElementById('adminInp').click()"
+        ondragover="event.preventDefault();this.classList.add('ov')"
+        ondragleave="this.classList.remove('ov')"
+        ondrop="this.classList.remove('ov');dropAdmin(event)">
+        <div style="font-size:26px;margin-bottom:7px;">🔑</div>
+        <div style="font-size:14px;font-weight:700;color:var(--ac);">點擊或拖曳上傳高階名單</div>
+      </div>
+      <input type="file" id="adminInp" style="display:none" accept=".xlsx,.xls" onchange="uploadAdmin(this.files[0])">
+      <div id="adminStatus" style="margin-top:10px;"></div>
+    </div>
+    <!-- 人力表統計 -->
+    <div class="card">
+      <div class="ct">📋 已載入人員</div>
+      <div style="font-size:12px;color:var(--mu);margin-bottom:10px;" id="staffSummary">載入中...</div>
+      <div id="staffTable"></div>
+    </div>
+  </div>
+</div>
+
+<div class="ov-wrap" id="ov"><div class="spin"></div><div class="spin-t" id="ovTxt">處理中...</div></div>
+
+<!-- 資料搬移提示框 -->
+<div id="migrateModal" style="display:none;position:fixed;inset:0;background:rgba(30,40,60,.55);z-index:200;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:32px 28px;max-width:420px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,.18);text-align:center;">
+    <div style="font-size:36px;margin-bottom:12px;">☁️</div>
+    <div style="font-size:18px;font-weight:700;color:#1a2a4a;margin-bottom:8px;">發現本機舊資料</div>
+    <div style="font-size:13px;color:#555;line-height:1.7;margin-bottom:6px;">
+      這台電腦上有 <strong id="migrateCount" style="color:#1a6fd8;font-size:15px;">0</strong> 筆舊版資料（教材、題庫、測驗結果等）<br>
+      要一鍵搬移到雲端嗎？<br>
+      <span style="color:#888;font-size:12px;">搬移後換任何電腦都看得到同樣的資料</span>
+    </div>
+    <div id="migrateProgress" style="display:none;margin:12px 0;font-size:12px;color:#1a6fd8;"></div>
+    <div style="display:flex;gap:10px;margin-top:20px;justify-content:center;">
+      <button onclick="skipMigrate()" style="padding:10px 22px;border-radius:8px;border:1.5px solid #ddd;background:#f5f5f5;color:#555;font-size:14px;cursor:pointer;">略過（不搬）</button>
+      <button onclick="doMigrate()" id="migratBtn" style="padding:10px 26px;border-radius:8px;border:none;background:#1a6fd8;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">✅ 立即搬移到雲端</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>'use strict';
+// ══ CONSTANTS ══
+const SUPERADMIN_IDS = ['ZK0566']; // hardcoded superadmins
+const PASS = 70;
+const AUD  = {new:'新進人員',mid:'熟手',senior:'資深',transfer:'轉型人員'};
+const DIFF = {easy:'初階',mid:'中階',hard:'進階'};
+
+// ══ STATE ══
+let cu = null, curRole = 'staff';
+let mats = [];
+let selIds = new Set();
+let draftQs = [], draftMeta = {};
+let pendingQuiz = null, userAnswers = {};
+let staffList = [];   // [{id,name,dept,team,role}]
+let adminList = [];   // [{id,name,role:'superadmin'}]
+let staffLoaded = false;
+let catFilterVal = ''; // ★ FIX: was missing → caused ReferenceError in renderMats()
+
+// ══ STORAGE（雲端 Netlify Blobs，所有電腦共用）══
+const _API = '/.netlify/functions/api';
+const _isNet = location.protocol==='https:' && location.hostname!=='localhost' && location.hostname!=='127.0.0.1';
+
+async function sg(k){
+  if(!_isNet){try{const v=localStorage.getItem('quiz_'+k);return v?JSON.parse(v):null;}catch{return null;}}
+  try{
+    const r=await fetch(_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'blob_get',key:k})});
+    const d=await r.json();return d.value??null;
+  }catch{return null;}
+}
+async function ss(k,v){
+  if(!_isNet){
+    try{const s=JSON.stringify(v);localStorage.setItem('quiz_'+k,s);return true;}
+    catch(e){if(e.name==='QuotaExceededError')toast('❌ 瀏覽器儲存空間已滿');return false;}
+  }
+  try{
+    const r=await fetch(_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'blob_set',key:k,value:v})});
+    const d=await r.json();return d.ok===true;
+  }catch{return false;}
+}
+async function sr(k){
+  if(!_isNet){try{localStorage.removeItem('quiz_'+k);}catch{}return;}
+  try{await fetch(_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'blob_del',key:k})});}catch{}
+}
+async function sl(p){
+  if(!_isNet){try{const keys=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith('quiz_'+p))keys.push(k.replace('quiz_',''));}return keys;}catch{return[];}}
+  try{
+    const r=await fetch(_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'blob_list',prefix:p})});
+    const d=await r.json();return d.keys??[];
+  }catch{return[];}
+}
+
+// ══ STAFF LIST ══
+async function loadStaffList(){
+  const saved = await sg('staffList');
+  if(saved&&Array.isArray(saved)&&saved.length){
+    staffList = saved; staffLoaded = true;
+    updateLoginUI();
+    return true;
+  }
+  return false;
+}
+async function loadAdminList(){
+  const saved = await sg('adminList');
+  if(saved&&Array.isArray(saved)){adminList=saved;}
+}
+function updateLoginUI(){
+  const demoWrap   = document.getElementById('demoWrap');
+  const strictWrap = document.getElementById('strictWrap');
+  const hint       = document.getElementById('loginHint');
+  if(staffLoaded){
+    demoWrap.style.display   = 'none';
+    strictWrap.style.display = '';
+    hint.textContent = '請輸入工號登入，身份由人力資料自動識別';
+  } else {
+    demoWrap.style.display   = '';
+    strictWrap.style.display = 'none';
+    hint.textContent = 'Demo 模式：任何工號皆可登入並自選身份';
+  }
+}
+function resolveRole(id){
+  // Superadmin hardcoded
+  if(SUPERADMIN_IDS.includes(id)) return {role:'superadmin',source:'hardcoded'};
+  // Admin list
+  const adm = adminList.find(a=>a.id===id);
+  if(adm) return {role:'superadmin',source:'adminList'};
+  // Staff list
+  const emp = staffList.find(s=>s.id===id);
+  if(emp) return {role:emp.role, dept:emp.dept, team:emp.team, name:emp.name, source:'staffList'};
+  return null;
+}
+
+// ══ EXCEL PARSE ══
+async function parseStaffExcel(file){
+  await loadSheetJS();
+  const ab = await file.arrayBuffer();
+  const wb = XLSX.read(ab,{type:'array'});
+  const result = [];
+
+  // 支援多個工作表（查修清冊 + 測量台清冊）
+  for(const sheetName of wb.SheetNames){
+    const ws = wb.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+    if(rows.length<2) continue;
+
+    // 自動偵測欄位格式
+    const hdr = rows[0].map(v=>String(v||'').trim());
+    let fmt = null;
+    // 新格式：A=員工編號, B=中文姓名, E=部門代號, G=角色
+    if(hdr[0]==='員工編號' && hdr[4]==='部門代號'){
+      fmt = 'new';
+    }
+    // 舊格式：C=部門代號, E=身分, G=員工編號, H=中文姓名
+    else if(hdr[2]==='部門代號'){
+      fmt = 'old';
+    }
+    if(!fmt){ console.warn('未知Excel格式，跳過：',sheetName); continue; }
+
+    for(const r of rows.slice(1)){
+      let empId='', name='', deptCode='', identity='';
+      if(fmt==='new'){
+        empId    = String(r[0]||'').trim();
+        name     = String(r[1]||'').trim();
+        deptCode = String(r[4]||'').trim();
+        const roleCol = String(r[6]||'').trim();   // G欄：角色
+        identity = roleCol || String(r[5]||'').trim(); // 角色 or 職稱
+      } else {
+        deptCode = String(r[2]||'').trim();
+        identity = String(r[4]||'').trim();
+        empId    = String(r[6]||'').trim();
+        name     = String(r[7]||'').trim();
+      }
+      if(!empId.startsWith('Z')||!deptCode) continue;
+      // 隊長 or 隊長(暫代) → manager，其餘 → staff
+      const role = (identity==='隊長'||identity==='隊長(暫代)')?'manager':'staff';
+      const team = deptCode.slice(5,8)||'';
+      // 避免重複（同一工號在多個sheet出現時保留第一筆）
+      if(!result.find(x=>x.id===empId)){
+        result.push({id:empId,name,dept:deptCode.slice(0,5)||deptCode,team,deptFull:deptCode,role,identity});
+      }
+    }
+  }
+  return result;
+}
+async function parseAdminExcel(file){
+  await loadSheetJS();
+  const ab = await file.arrayBuffer();
+  const wb = XLSX.read(ab,{type:'array'});
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+  const result = [];
+  for(const r of rows.slice(1)){
+    const id   = String(r[0]||'').trim();
+    const name = String(r[1]||'').trim();
+    const role = String(r[2]||'').trim();
+    if(id&&name) result.push({id,name,role:role||'superadmin'});
+  }
+  return result;
+}
+async function loadSheetJS(){
+  if(window.XLSX) return;
+  await new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload=res;s.onerror=rej;document.head.appendChild(s);
+  });
+}
+function dropStaff(e){e.preventDefault();uploadStaff(e.dataTransfer.files[0]);}
+function dropAdmin(e){e.preventDefault();uploadAdmin(e.dataTransfer.files[0]);}
+async function uploadStaff(file){
+  if(!file) return;
+  showOv('解析人力資料中...');
+  try{
+    const newEmps = await parseStaffExcel(file);
+    // Merge: same ID = update, new = add
+    newEmps.forEach(emp=>{
+      const idx = staffList.findIndex(s=>s.id===emp.id);
+      if(idx>=0) staffList[idx]=emp; else staffList.push(emp);
+    });
+    staffLoaded = true;
+    await ss('staffList', staffList);
+    updateLoginUI();
+    showStaffTable();
+    const el=document.getElementById('staffStatus');
+    el.innerHTML='<div style="background:#dcfce7;border:1px solid #86efac;border-radius:8px;padding:9px 12px;font-size:12px;color:#166534;">✅ 成功匯入 '+newEmps.length+' 筆，人力庫共 '+staffList.length+' 人</div>';
+    toast('✅ 人力資料更新完成');
+  }catch(e){toast('❌ 解析失敗：'+e.message);}
+  finally{hideOv();}
+}
+async function uploadAdmin(file){
+  if(!file) return;
+  showOv('解析高階名單中...');
+  try{
+    adminList = await parseAdminExcel(file);
+    await ss('adminList', adminList);
+    const el=document.getElementById('adminStatus');
+    el.innerHTML='<div style="background:#dcfce7;border:1px solid #86efac;border-radius:8px;padding:9px 12px;font-size:12px;color:#166534;">✅ 高階名單已更新，共 '+adminList.length+' 人</div>';
+    toast('✅ 高階名單更新完成');
+  }catch(e){toast('❌ 解析失敗：'+e.message);}
+  finally{hideOv();}
+}
+function showStaffTable(){
+  const el = document.getElementById('staffTable');
+  const sum = document.getElementById('staffSummary');
+  if(!staffList.length){sum.textContent='尚無人力資料';el.innerHTML='';return;}
+  const mgrs  = staffList.filter(s=>s.role==='manager').length;
+  const staffs= staffList.filter(s=>s.role==='staff').length;
+  sum.textContent=`共 ${staffList.length} 人 | 主管 ${mgrs} 人 | 隊員 ${staffs} 人`;
+  // Group by dept
+  const depts={};
+  staffList.forEach(s=>{
+    if(!depts[s.deptFull]) depts[s.deptFull]=[];
+    depts[s.deptFull].push(s);
+  });
+  let rows='';
+  Object.entries(depts).sort().forEach(([dept,emps])=>{
+    rows+=`<div style="font-size:11px;font-weight:700;color:var(--mu);margin:10px 0 5px;text-transform:uppercase;letter-spacing:.5px;">${dept} (${emps.length}人)</div>`;
+    emps.forEach(e=>{
+      const roleColor=e.role==='manager'?'#1d4ed8':'#374151';
+      rows+=`<div class="fi-item" style="padding:6px 10px;">
+        <div class="fi-info"><div class="fi-name">${e.id} ${e.name}</div>
+        <div class="fi-sub" style="color:${roleColor};">${e.identity||e.role}</div></div>
+      </div>`;
+    });
+  });
+  el.innerHTML=rows;
+}
+
+// ══ LOGIN ══
+function setRole(r){
+  curRole=r;
+  document.getElementById('rStaff').classList.toggle('on',r==='staff');
+  document.getElementById('rMgr').classList.toggle('on',r==='manager');
+}
+function parseCode(v){
+  const h=document.getElementById('cHint');
+  if(v.length>=8){
+    h.innerHTML='✅ 部級：<b>'+v.slice(0,5)+'</b>　隊級：<b>'+v.slice(5,8)+'</b>';
+    h.style.cssText='font-size:12px;color:var(--dm);margin-bottom:13px;padding:8px 12px;background:#f0fdf4;border-radius:8px;border:1px solid #86efac;line-height:1.7;';
+  } else {
+    h.textContent='輸入 8 碼單位代號，前 5 碼為部級、後 3 碼為隊級';
+    h.style.cssText='font-size:12px;color:var(--dm);margin-bottom:13px;padding:8px 12px;background:#fffbeb;border-radius:8px;border:1px solid #fde68a;line-height:1.7;';
+  }
+}
+async function doLogin(){
+  const id   = document.getElementById('lId').value.trim().toUpperCase();
+  const codeEl = document.getElementById('lCode');
+  const code = codeEl ? codeEl.value.trim().toUpperCase() : '';
+  if(!id){toast('請輸入工號');return;}
+
+  let role='staff', dept='', team='', name=id, isSuperAdmin=false;
+
+  if(staffLoaded){
+    // ── Strict mode：角色由人力清冊決定，無法自選 ──
+    const resolved = resolveRole(id);
+    if(!resolved){toast('❌ 工號 '+id+' 不在人力資料中，請聯繫主管');return;}
+    role = resolved.role==='superadmin'?'superadmin':resolved.role==='manager'?'manager':'staff';
+    isSuperAdmin = resolved.role==='superadmin';
+    dept = resolved.dept||'';
+    team = resolved.team||'';
+    name = resolved.name||id;
+    if(isSuperAdmin && !dept) dept='DA240';
+    // ★ 角色鎖定：若人力清冊是隊員，不允許以主管身份登入
+    if(!isSuperAdmin && role==='staff' && curRole==='manager'){
+      toast('❌ 您的身份為隊員，無法以主管身份登入');return;
+    }
+  } else {
+    // ── Demo mode ──
+    isSuperAdmin = SUPERADMIN_IDS.includes(id);
+    if(isSuperAdmin){role='superadmin';}
+    else{role=curRole;}
+    dept = code.slice(0,5)||'DEMO';
+    team = code.slice(5,8)||'000';
+    name = id;
+    if(!isSuperAdmin&&!code){toast('請填入單位代號');return;}
+  }
+
+  const emp = await sg('emp:'+id)||{audience:'new'};
+  cu = {id,name,role,isSuperAdmin,dept,team,code:code||dept+team,audience:emp.audience||'new'};
+  await ss('emp:'+id,{...emp,id,name,dept,team,lastLogin:Date.now()});
+
+  document.getElementById('tbUser').style.display='';
+  document.getElementById('tbUser').textContent=name+' | '+(isSuperAdmin?'⚡最高權限':role==='manager'?'主管':'隊員');
+  document.getElementById('tbOut').style.display='';
+
+  const mgrRole = role==='manager'||role==='superadmin';
+  if(mgrRole){
+    showScreen('sMgr');
+    document.getElementById('ntAdmin').style.display = isSuperAdmin?'':'none';
+    await loadMats();
+    mgrTab('mats');
+    // Pre-load pub count for badge
+    setTimeout(async()=>{
+      const keys=await sl('quiz:');
+      let cnt=0;for(const k of keys){const q=await sg(k);if(q&&q.published)cnt++;}
+      if(cnt>0){
+        const pubBtn=document.querySelectorAll('#sMgr .nt')[2];
+        if(pubBtn) pubBtn.textContent='📚 已發布('+cnt+')';
+      }
+    },500);
+  } else {
+    showScreen('sStaff');
+    loadPending();
+  }
+}
+function logout(){
+  cu=null;mats=[];selIds.clear();draftQs=[];
+  document.getElementById('tbUser').style.display='none';
+  document.getElementById('tbOut').style.display='none';
+  document.getElementById('lId').value='';
+  const _lc=document.getElementById('lCode');if(_lc)_lc.value='';
+  document.getElementById('ntAdmin').style.display='none';
+  showScreen('sLogin');toast('已登出');
+}
+
+// ══ STAFF ══
+async function loadPending(){
+  const keys=await sl('quiz:');
+  const el=document.getElementById('pendingList');el.innerHTML='';
+  if(!keys.length){el.innerHTML='<div class="empty"><div class="ei">📭</div>目前沒有可參加的測驗</div>';return;}
+  const dk=await sl('result:'+cu.id+':');
+  const dids=new Set(dk.map(k=>k.split(':')[2]));
+  let cnt=0;
+  for(const k of keys){
+    const q=await sg(k);if(!q||!q.published)continue;
+    const done=dids.has(q.id);
+    const d=document.createElement('div');d.className='qi';
+    d.innerHTML='<div class="qi-icon" style="background:'+(done?'#dcfce7':'#eff6ff')+'">'+(done?'✅':'📝')+'</div>'
+      +'<div class="qi-info"><div class="qi-name">'+q.name+'</div><div class="qi-meta">'+q.qCount+'題｜'+DIFF[q.diff]+'｜'+AUD[q.audience]+'</div></div>'
+      +'<span class="pill" style="background:'+(done?'#dcfce7':'#fef3c7')+';color:'+(done?'#16a34a':'#d97706')+'">'+(done?'已完成':'未作答')+'</span>';
+    if(!done)d.onclick=()=>startQuiz(q);
+    el.appendChild(d);cnt++;
+  }
+  if(!cnt)el.innerHTML='<div class="empty"><div class="ei">📭</div>目前沒有待測驗</div>';
+}
+async function loadDone(){
+  const keys=await sl('result:'+cu.id+':');
+  const el=document.getElementById('doneList');el.innerHTML='';
+  if(!keys.length){el.innerHTML='<div class="empty"><div class="ei">📊</div>尚無測驗紀錄</div>';return;}
+  for(const k of keys){
+    const r=await sg(k);if(!r)continue;
+    const pass=r.pct>=PASS;
+    const d=document.createElement('div');d.className='qi';
+    d.innerHTML='<div class="qi-icon" style="background:'+(pass?'#dcfce7':'#fee2e2')+'">'+(pass?'🏆':'📝')+'</div>'
+      +'<div class="qi-info"><div class="qi-name">'+r.quizName+'</div><div class="qi-meta">'+r.score+'/'+r.total+'題｜'+r.pct+'%｜'+new Date(r.ts).toLocaleDateString('zh-TW')+'</div></div>'
+      +'<span class="pill" style="background:'+(pass?'#dcfce7':'#fee2e2')+';color:'+(pass?'#16a34a':'#dc2626')+'">'+(pass?'通過':'未通過')+'</span>';
+    el.appendChild(d);
+  }
+}
+function staffTab(t){
+  document.querySelectorAll('#sStaff .nt').forEach((b,i)=>b.classList.toggle('on',i===(t==='pending'?0:1)));
+  document.getElementById('tPending').style.display=t==='pending'?'':'none';
+  document.getElementById('tDone').style.display=t==='done'?'':'none';
+  if(t==='done')loadDone();
+}
+
+// ══ QUIZ TAKING ══
+function startQuiz(q){
+  pendingQuiz=q;userAnswers={};
+  document.getElementById('qtTitle').textContent=q.name;
+  document.getElementById('qtMeta').textContent=q.qCount+'題｜'+DIFF[q.diff]+'｜'+AUD[q.audience];
+  renderQs(q.questions,'qtQs',true);
+  showScreen('sQuiz');
+}
+function renderQs(qs,cid,inter){
+  const wrap=document.getElementById(cid);wrap.innerHTML='';
+  const tl={mc:'選擇',tf:'是非',sa:'問答'};
+  qs.forEach((q,i)=>{
+    const div=document.createElement('div');div.className='qc';
+    let opts='';
+    if(q.options&&q.options.length){
+      opts='<div class="qopts" id="op_'+cid+'_'+q.id+'">';
+      q.options.forEach((o,oi)=>{
+        const L='ABCD'[oi];
+        if(inter)opts+='<div class="qo" data-qid="'+q.id+'" data-letter="'+L+'" onclick="pickOpt(this,\''+q.id+'\',\''+L+'\')"><div class="ql">'+L+'</div><div>'+o.replace(/^[A-D]\.\s*/,'')+'</div></div>';
+        else opts+='<div class="qo'+(L===q.answer?' correct':'')+'"><div class="ql">'+L+'</div><div>'+o.replace(/^[A-D]\.\s*/,'')+'</div></div>';
+      });
+      opts+='</div>';
+    }
+    const sai=q.type==='sa'&&inter?'<textarea class="qsai" id="sa_'+q.id+'" placeholder="請輸入答案..."></textarea>':'';
+    const ans=!inter?'<div class="qans show"><div style="font-size:9px;opacity:.7;text-transform:uppercase;margin-bottom:2px;">正確答案</div>'+q.answer+'</div><div class="qexp show"><b>解析：</b>'+q.explain+'</div>':'';
+    div.innerHTML='<div class="qh"><div class="qn">'+String(i+1).padStart(2,'0')+'</div><span class="qbadge '+q.type+'">'+tl[q.type]+'</span><div class="qt">'+q.text+'</div></div>'+opts+sai+ans;
+    wrap.appendChild(div);
+  });
+}
+function pickOpt(el,qid,letter){
+  document.querySelectorAll('[data-qid="'+qid+'"]').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel');userAnswers[qid]=letter;
+}
+async function submitQuiz(){
+  if(!pendingQuiz)return;
+  const qs=pendingQuiz.questions,sc=qs.filter(q=>q.type!=='sa');
+  let ok=0;sc.forEach(q=>{if(userAnswers[q.id]===q.answer)ok++;});
+  const pct=sc.length>0?Math.round(ok/sc.length*100):0,pass=pct>=PASS;
+  await ss('result:'+cu.id+':'+pendingQuiz.id,{
+    quizId:pendingQuiz.id,quizName:pendingQuiz.name,
+    userId:cu.id,userName:cu.name,userCode:cu.code,
+    dept:cu.dept,team:cu.team,audience:cu.audience,
+    score:ok,total:sc.length,pct,pass,answers:userAnswers,ts:Date.now(),
+    catMain:pendingQuiz.catMain,catSub:pendingQuiz.catSub,diff:pendingQuiz.diff
+  });
+  const msg=pct>=90?'🏆 優秀！':pct>=PASS?'✅ 通過！繼續加油':'⚠️ 需要加強複習';
+  document.getElementById('scorePanel').innerHTML='<div class="sb">'+ok+'/'+sc.length+'</div><div style="font-size:13px;opacity:.8;margin-top:2px;">答對 '+pct+'%</div><div style="font-size:16px;font-weight:700;margin-top:10px;">'+msg+'</div><div style="font-size:11px;opacity:.7;margin-top:7px;">歸檔：'+cu.dept+'/'+cu.team+'/'+cu.id+'</div>';
+  renderQs(qs,'resultQs',false);
+  qs.filter(q=>q.type!=='sa').forEach(q=>{
+    const ch=userAnswers[q.id];
+    if(ch&&ch!==q.answer){const e=document.querySelector('#resultQs [data-qid="'+q.id+'"][data-letter="'+ch+'"]');if(e)e.classList.add('wrong');}
+  });
+  showScreen('sResult');toast('測驗完成！'+(pass?'✅ 通過':'❌ 未通過')+'，已自動歸檔');
+}
+function goBack(){pendingQuiz=null;showScreen('sStaff');loadPending();}
+function backToMain(){pendingQuiz=null;if(cu&&(cu.role==='manager'||cu.isSuperAdmin))showScreen('sMgr');else{showScreen('sStaff');loadPending();}}
+
+// ══ MANAGER TABS ══
+async function mgrTab(t){
+  const tabs=['mats','create','pub','review','admin'];
+  tabs.forEach((tab,i)=>{
+    const btn=document.querySelectorAll('#sMgr .nt')[i];
+    if(btn) btn.classList.toggle('on',tab===t);
+    const panel=document.getElementById('t'+tab.charAt(0).toUpperCase()+tab.slice(1));
+    if(panel) panel.style.display=tab===t?'':'none';
+  });
+  if(t==='create'){
+    if(!mats.length) await loadMats();
+    refreshMatSel();
+  }
+  if(t==='pub')    loadPub();
+  if(t==='review') loadReview();
+  if(t==='admin')  showStaffTable();
+}
+
+// ══ MATERIALS ══
+function upTab(t){
+  document.getElementById('upFile').style.display=t==='file'?'':'none';
+  document.getElementById('upUrl').style.display=t==='url'?'':'none';
+  const af='background:var(--ac);color:#fff;border-color:var(--ac);';
+  document.getElementById('tabF').style.cssText='flex:1;font-size:12px;padding:8px;'+(t==='file'?af:'');
+  document.getElementById('tabU').style.cssText='flex:1;font-size:12px;padding:8px;'+(t==='url'?af:'');
+}
+function getCatLabel(){
+  const a=document.querySelector('#upCatRow .chip.on');return a?a.dataset.cat:'技術類';
+}
+function selectCat(el){
+  document.querySelectorAll('#upCatRow .chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+}
+function dropFiles(e){e.preventDefault();addFiles(e.dataTransfer.files);}
+function addFiles(fl){Array.from(fl).forEach(f=>procFile(f));}
+
+async function procFile(file){
+  // Duplicate check
+  const existing=mats.find(m=>m.status==='done'&&m.name===file.name&&!m.archived);
+  if(existing){
+    const ok=confirm('「'+file.name+'」已存在於教材庫。\n\n要重新上傳並取代嗎？');
+    if(!ok){toast('已略過：'+file.name);return;}
+    existing.archived=true;
+  }
+  // Similar name check
+  const base=file.name.replace(/\.[^/.]+$/,'').replace(/[_\-\s]*v?\d+(\.\d+)*$/i,'').toLowerCase();
+  const similar=mats.filter(m=>m.status==='done'&&!m.archived&&m.id!==(existing&&existing.id)&&
+    m.name.replace(/\.[^/.]+$/,'').replace(/[_\-\s]*v?\d+(\.\d+)*$/i,'').toLowerCase()===base);
+  if(similar.length&&!existing){
+    const ok=confirm('教材庫中已有相似名稱：「'+similar.map(m=>m.name).join('、')+'」\n\n確定仍要上傳「'+file.name+'」嗎？');
+    if(!ok){toast('已略過：'+file.name);return;}
+  }
+
+  const id='m'+Date.now()+'_'+Math.random().toString(36).slice(2,5);
+  const cat=getCatLabel();
+  const entry={id,name:file.name,text:'',status:'processing',ts:Date.now(),cat,uploadedBy:cu&&cu.id};
+  mats.push(entry);renderMats();
+  try{entry.text=await extractText(file);entry.status='done';}
+  catch(err){entry.status='error';entry.error=err.message;}
+  renderMats();
+  if(entry.status==='done'){
+    await saveMats();
+    toast('✅ '+file.name+' 載入成功（'+entry.text.length+'字）');
+  }
+  else toast('❌ '+file.name+'：'+entry.error);
+}
+
+async function extractText(file){
+  const n=file.name.toLowerCase();
+  if(/\.(jpg|jpeg|png|gif|webp)$/.test(n)){
+    return await ocrImg(await toB64(file),file.type||'image/jpeg');
+  }
+  if(n.endsWith('.pdf')) return await readPdf(file);
+  if(n.endsWith('.docx')||n.endsWith('.doc')) return await readDocx(file);
+  return await file.text();
+}
+function toB64(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(f);});}
+async function ocrImg(b64,mtype){
+  const res=await fetch('/.netlify/functions/api',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,
+      messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mtype,data:b64}},{type:'text',text:'請將圖片中的所有文字完整擷取，保留結構，不要加說明。'}]}]})});
+  const d=await res.json();return d.content?.[0]?.text||'';
+}
+async function readPdf(file){
+  if(!window.pdfjsLib){
+    await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+  const ab=await file.arrayBuffer(),pdf=await window.pdfjsLib.getDocument({data:ab}).promise;
+  let txt='';for(let i=1;i<=pdf.numPages;i++){const p=await pdf.getPage(i);const c=await p.getTextContent();txt+=c.items.map(s=>s.str).join(' ')+'\n';}
+  return txt.trim();
+}
+async function readDocx(file){
+  if(!window.mammoth){await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
+  const ab=await file.arrayBuffer();const r=await mammoth.extractRawText({arrayBuffer:ab});return r.value.trim();
+}
+async function fetchUrl(){
+  const url=(document.getElementById('urlIn').value||'').trim();
+  if(!url){toast('請輸入網址');return;}
+  showOv('匯入網址內容中...');
+  try{
+    const gdDoc=url.match(/\/document\/d\/([a-zA-Z0-9_-]{20,})/);
+    const gdSheet=url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]{20,})/);
+    const gd=url.match(/\/d\/([a-zA-Z0-9_-]{20,})/);
+    let fetchUrl=url;
+    let label=url.length>60?url.slice(0,60)+'...':url;
+    if(gdDoc){fetchUrl='https://docs.google.com/document/d/'+gdDoc[1]+'/export?format=txt';label='Google 文件（'+gdDoc[1].slice(0,8)+'...）';}
+    else if(gdSheet){fetchUrl='https://docs.google.com/spreadsheets/d/'+gdSheet[1]+'/export?format=csv';label='Google 試算表';}
+    else if(gd){fetchUrl='https://drive.google.com/uc?export=download&id='+gd[1];}
+    let text='',ok=false;
+    try{const res=await fetch(fetchUrl,{mode:'cors'});if(res.ok){text=await res.text();if(text.length>20)ok=true;}}catch(e1){}
+    if(!ok){try{const res=await fetch('https://corsproxy.io/?'+encodeURIComponent(fetchUrl));if(res.ok){text=await res.text();if(text.length>20)ok=true;}}catch(e2){}}
+    if(!ok){try{const res=await fetch('https://api.allorigins.win/get?url='+encodeURIComponent(fetchUrl));const d=await res.json();if(d.contents&&d.contents.length>20){text=d.contents;ok=true;}}catch(e3){}}
+    if(!ok||text.length<20) throw new Error('無法取得內容，請確認連結是否公開');
+    if(text.trim().startsWith('<')){const tmp=document.createElement('div');tmp.innerHTML=text;text=tmp.innerText||tmp.textContent||text;}
+    text=text.trim();
+    const cat=getCatLabel();
+    const id='m'+Date.now();
+    mats.push({id,name:label,text,status:'done',ts:Date.now(),cat,uploadedBy:cu&&cu.id});
+    renderMats();saveMats();document.getElementById('urlIn').value='';upTab('file');
+    toast('✅ 網址匯入成功（'+text.length+'字）');
+  }catch(e){toast('❌ 匯入失敗：'+e.message);}
+  finally{hideOv();}
+}
+
+// ── Archive (soft delete) ──
+async function archiveMat(id){
+  const m=mats.find(m=>m.id===id);
+  if(!m) return;
+  // Double confirm with text input
+  const confirmed=prompt('確認要封存「'+m.name+'」嗎？\n\n請輸入「確認刪除」來執行（封存後可還原）：');
+  if(confirmed!=='確認刪除'){toast('已取消');return;}
+  m.archived=true;
+  selIds.delete(id);
+  await ss('mgr_mat:global:'+id,m);
+  saveMats();
+  renderMats();
+  toast('已封存「'+m.name+'」');
+}
+async function restoreMat(id){
+  const m=mats.find(m=>m.id===id);
+  if(!m) return;
+  m.archived=false;
+  await ss('mgr_mat:global:'+id,m);
+  saveMats();
+  renderMats();
+  toast('✅ 已還原「'+m.name+'」');
+}
+function renameMat(id){
+  const m=mats.find(m=>m.id===id);if(!m)return;
+  const n=prompt('重新命名：',m.name);
+  if(!n||!n.trim())return;
+  m.name=n.trim();saveMats();renderMats();toast('✅ 已重新命名');
+}
+function editCat(id){
+  const m=mats.find(m=>m.id===id);if(!m)return;
+  const cats=['技術類','作業規範','業務推廣','安全規範','設備說明','其他'];
+  const current=m.cat||'技術類';
+  const list=cats.map((c,i)=>(i+1)+'. '+c+(c===current?' (目前)':'')).join(', ');
+  const input=prompt('修改「'+m.name+'」的分類 目前：'+current+' | '+list+' | 請輸入數字(1-6)：');
+  if(!input||!input.trim())return;
+  const i=parseInt(input.trim())-1;
+  if(isNaN(i)||i<0||i>=cats.length){toast('請輸入 1 到 6 之間的數字');return;}
+  m.cat=cats[i];saveMats();renderMats();toast('✅ 分類已改為「'+cats[i]+'」');
+}
+
+function setCatFilter(el){
+  document.querySelectorAll('#catFilter .chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');catFilterVal=el.dataset.filter||'';renderMats();
+}
+
+// ── Save / Load materials (global - shared across all managers) ──
+async function saveMats(){
+  const done=mats.filter(m=>m.status==='done');
+  const index=done.map(m=>({id:m.id,name:m.name,cat:m.cat,ts:m.ts,
+    len:m.text?m.text.length:0,archived:m.archived||false,uploadedBy:m.uploadedBy}));
+  await ss('mgr_idx:global',index);
+  for(const m of done){
+    const text=m.text&&m.text.length>50000?m.text.slice(0,50000)+'...(已截斷)':m.text||'';
+    await ss('mgr_mat:global:'+m.id,
+      {id:m.id,name:m.name,cat:m.cat,ts:m.ts,text,status:'done',
+       archived:m.archived||false,uploadedBy:m.uploadedBy});
+  }
+}
+async function loadMats(){
+  try{
+    const index=await sg('mgr_idx:global');
+    if(index&&Array.isArray(index)&&index.length){
+      const loaded=[];
+      for(const item of index){
+        const mat=await sg('mgr_mat:global:'+item.id);
+        if(mat) loaded.push(mat);
+        else loaded.push({...item,text:'（內容遺失，請重新上傳）',status:'done'});
+      }
+      mats=loaded;
+      renderMats();
+      const active=loaded.filter(m=>!m.archived).length;
+      if(active) toast('✅ 已載入 '+active+' 份教材');
+      return;
+    }
+  }catch(e){console.error('loadMats:',e);}
+}
+
+function renderMats(){
+  const el=document.getElementById('matList');
+  const showArchived=document.getElementById('showArchived')&&document.getElementById('showArchived').checked;
+  let visible=catFilterVal?mats.filter(m=>m.cat===catFilterVal):mats;
+  if(!showArchived) visible=visible.filter(m=>!m.archived);
+  if(!mats.length){el.innerHTML='<div class="empty"><div class="ei">📂</div>尚未上傳教材</div>';return;}
+  if(!visible.length){el.innerHTML='<div class="empty"><div class="ei">🔍</div>此分類沒有教材</div>';return;}
+  el.innerHTML='';
+  visible.forEach(m=>{
+    const icon=m.archived?'📦':m.status==='done'?'✅':m.status==='error'?'❌':'⏳';
+    const color=m.archived?'#9ca3af':m.status==='done'?'#16a34a':m.status==='error'?'#dc2626':'#d97706';
+    const sub=m.archived?'已封存（可還原）':m.status==='done'?(m.text?m.text.length:m.len||0)+'字':m.status==='error'?m.error:'解析中...';
+    const catBadge=m.cat?'<span style="font-size:10px;background:#f0f4ff;color:#4f6ef7;padding:1px 7px;border-radius:100px;font-weight:700;margin-left:5px;">'+m.cat+'</span>':'';
+    const d=document.createElement('div');
+    d.className='fi-item';
+    d.style.opacity=m.archived?'0.6':'1';
+    d.innerHTML='<span style="font-size:17px;">'+icon+'</span>'
+      +'<div class="fi-info"><div class="fi-name" style="display:flex;align-items:center;flex-wrap:wrap;gap:3px;"><span>'+m.name+'</span>'+catBadge+'</div>'
+      +'<div class="fi-sub" style="color:'+color+';">'+sub+'</div></div>'
+      +(m.archived
+        ?'<button type="button" title="還原" onclick="restoreMat(\''+m.id+'\')" style="background:none;border:none;cursor:pointer;color:#16a34a;font-size:12px;padding:2px 6px;border-radius:4px;flex-shrink:0;">還原</button>'
+        :m.status==='done'
+          ?'<button type="button" title="重新命名" onclick="renameMat(\''+m.id+'\')" style="background:none;border:none;cursor:pointer;color:var(--mu);font-size:13px;padding:2px 5px;border-radius:4px;flex-shrink:0;">✏️</button>'
+           +'<button type="button" title="封存" onclick="archiveMat(\''+m.id+'\')" style="background:none;border:none;cursor:pointer;color:var(--rd);font-size:13px;padding:2px 5px;border-radius:4px;flex-shrink:0;">🗑</button>'
+          :'');
+    el.appendChild(d);
+  });
+  const done=mats.filter(m=>m.status==='done'&&!m.archived);
+  if(done.length){
+    const sum=document.createElement('div');
+    sum.style.cssText='font-size:11px;color:var(--mu);margin-top:10px;padding-top:9px;border-top:1px solid var(--bd);text-align:right;font-family:var(--mono);';
+    const archived=mats.filter(m=>m.archived).length;
+    sum.innerHTML='有效教材 '+done.length+' 份'+(archived?' · 封存中 '+archived+' 份 <label style="cursor:pointer;"><input type="checkbox" id="showArchived" onchange="renderMats()"> 顯示封存</label>':'');
+    el.appendChild(sum);
+  }
+}
+
+// ══ QUIZ CREATION ══
+function refreshMatSel(){
+  const el=document.getElementById('matSel');
+  const done=mats.filter(m=>m.status==='done'&&!m.archived);
+  if(!done.length){
+    el.innerHTML='<div class="empty"><div class="ei">📂</div>尚無教材，請先至「教材庫」上傳</div>';
+    document.getElementById('selInfo').textContent='已選 0 份，合計 0 字';return;
+  }
+  const cats=[...new Set(done.map(m=>m.cat||'未分類'))];
+  el.innerHTML='';
+  cats.forEach(cat=>{
+    const catMats=done.filter(m=>(m.cat||'未分類')===cat);
+    const hdr=document.createElement('div');
+    hdr.style.cssText='font-size:11px;font-weight:700;color:var(--mu);letter-spacing:.5px;text-transform:uppercase;margin:10px 0 6px;';
+    hdr.textContent=cat+' ('+catMats.length+'份)';
+    el.appendChild(hdr);
+    catMats.forEach(m=>{
+      const on=selIds.has(m.id);
+      const d=document.createElement('div');d.className='mi'+(on?' on':'');
+      d.onclick=()=>toggleSel(m.id,d);
+      d.innerHTML='<div class="mchk'+(on?' on':'')+'" id="mc_'+m.id+'">'+(on?'✓':'')+'</div>'
+        +'<div style="font-size:18px;">📄</div>'
+        +'<div class="minfo"><div class="mname">'+m.name+'</div><div class="msub">'+(m.text?m.text.length:m.len||0)+'字</div></div>';
+      el.appendChild(d);
+    });
+  });
+  updSelInfo();
+}
+function toggleSel(id,el){
+  if(selIds.has(id)){selIds.delete(id);el.classList.remove('on');const c=document.getElementById('mc_'+id);if(c){c.classList.remove('on');c.textContent='';}}
+  else{selIds.add(id);el.classList.add('on');const c=document.getElementById('mc_'+id);if(c){c.classList.add('on');c.textContent='✓';}}
+  updSelInfo();
+}
+function updSelInfo(){
+  const total=mats.filter(m=>selIds.has(m.id)).reduce((s,m)=>s+(m.text?m.text.length:m.len||0),0);
+  document.getElementById('selInfo').textContent='已選 '+selIds.size+' 份，合計 '+total+' 字';
+}
+function autoDiff(){document.getElementById('diff').value={new:'easy',mid:'mid',senior:'hard',transfer:'easy'}[document.getElementById('aud').value];}
+
+// ── parseQuizText ──
+function parseQuizText(raw){
+  const qs=[];
+  const parts=raw.split(/\n(?=Q\d+[.:])/i).filter(b=>/Q\d+/i.test(b));
+  const blocks=parts.length>1?parts:raw.split(/\n{2,}/).filter(b=>/Q\d+/i.test(b));
+  blocks.forEach((block,idx)=>{
+    const lines=block.split('\n').map(l=>l.trim()).filter(Boolean);
+    if(!lines.length) return;
+    const header=lines[0];
+    const typeM=header.match(/\[(MC|TF|SA)\]/i);
+    const type=typeM?typeM[1].toLowerCase():'tf';
+    const qtext=header.replace(/^Q\d+[.:]\s*/i,'').replace(/\[(MC|TF|SA)\]/i,'').trim();
+    if(!qtext) return;
+    const options=[];let answer='A',explain='';
+    lines.slice(1).forEach(l=>{
+      if(/^[A-D][.)]/i.test(l)) options.push(l.replace(/^([A-D])[.)]/i,'$1. ').trim());
+      else if(/^ANS:/i.test(l)) answer=l.replace(/^ANS:\s*/i,'').trim().charAt(0).toUpperCase()||'A';
+      else if(/^EXP:/i.test(l)) explain=l.replace(/^EXP:\s*/i,'').trim();
+    });
+    if(type==='tf'&&!options.length){options.push('A. 是（正確）');options.push('B. 否（錯誤）');}
+    qs.push({id:idx+1,type,text:qtext,options,answer,explain:explain||'請參閱教材'});
+  });
+  return qs;
+}
+
+async function genQuiz(){
+  const sel=mats.filter(m=>selIds.has(m.id)&&m.status==='done'&&!m.archived);
+  if(!sel.length){toast('請先勾選要使用的教材');return;}
+  const LIMIT=6000;
+  const mat=sel.map(m=>{
+    const t=m.text&&m.text.length>LIMIT?m.text.slice(0,LIMIT)+'\n...(已截取前段)':m.text||'';
+    return '['+m.name+']\n'+t;
+  }).join('\n\n---\n\n');
+  const cM=[...document.querySelectorAll('#catM .chip.on')].map(e=>e.textContent.trim()).join('、')||'技術類';
+  const cS=[...document.querySelectorAll('#catS .chip.on')].map(e=>e.textContent.trim()).join('、')||'';
+  const audience=document.getElementById('aud').value;
+  const diff=document.getElementById('diff').value;
+  const count=parseInt(document.getElementById('qCnt').value);
+  const type=document.getElementById('qTyp').value;
+  const name=document.getElementById('qName').value||((cS||cM)+' 驗收測驗');
+  draftMeta={name,catMain:cM,catSub:cS,audience,diff,count,type};
+  const typeWord=type==='mc'?'單選題（每題4個選項ABCD）':type==='tf'?'是非題（只有A.是 B.否兩個選項）':'混合題型（包含單選、是非、問答）';
+  const prompt='請根據以下教材，為「'+AUD[audience]+'」出'+count+'道'+typeWord+'，難度：'+DIFF[diff]+'，類別：'+cM+(cS?' / '+cS:'')+'。\n\n'
+    +'教材：\n'+mat+'\n\n'
+    +'輸出格式範例（嚴格遵守，每題之間空一行，不要加任何其他文字）：\n\n'
+    +'Q1. [TF] 進入電桿工作前必須先確認安全帽已正確配戴。\n'
+    +'A. 是（正確）\nB. 否（錯誤）\nANS: A\nEXP: 安全帽是高架作業必備防護裝備。\n\n'
+    +'Q2. [MC] 下列何者為標準的電桿作業程序？\n'
+    +'A. 先攀爬再確認安全\nB. 先確認安全再攀爬\nC. 無需確認直接作業\nD. 由組長決定流程\n'
+    +'ANS: B\nEXP: 安全確認永遠優先。\n\n'
+    +'現在請出'+count+'道題目：';
+  showOv('AI 分析教材，智慧出題中...');
+  try{
+    const res=await fetch('/.netlify/functions/api',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:8000,messages:[{role:'user',content:prompt}]})
+    });
+    if(!res.ok){const err=await res.text();throw new Error('API '+res.status+': '+err.slice(0,120));}
+    const d=await res.json();
+    if(d.error) throw new Error(d.error.message||'API 錯誤');
+    const raw=(d.content?.[0]?.text||'').trim();
+    if(!raw) throw new Error('AI 回傳空白，請重試');
+    draftQs=parseQuizText(raw);
+    if(!draftQs.length) throw new Error('無法解析題目，請重試');
+    renderQs(draftQs,'prevQs',false);
+    document.getElementById('prevCard').style.display='';
+    document.getElementById('prevCard').scrollIntoView({behavior:'smooth',block:'start'});
+    toast('✅ 成功產生 '+draftQs.length+' 道題目，請確認後發布');
+    if(draftQs.length<count) toast('⚠️ 只產生 '+draftQs.length+'/'+count+' 題，可點「重新出題」再試');
+  }catch(e){console.error('genQuiz:',e);toast('❌ 出題失敗：'+e.message);}
+  finally{hideOv();}
+}
+function cancelPrev(){document.getElementById('prevCard').style.display='none';draftQs=[];}
+async function pubQuiz(){
+  if(!draftQs.length){toast('請先產生題目');return;}
+  const id='quiz_'+Date.now();
+  // Store quiz independently - does NOT depend on material library
+  await ss('quiz:'+id,{id,...draftMeta,questions:draftQs,published:true,
+    createdBy:cu.id,createdByName:cu.name,createdDept:cu.dept,createdAt:Date.now()});
+  toast('✅ 題庫已發布！隊員可在待測驗中看到');
+  document.getElementById('prevCard').style.display='none';
+  document.getElementById('qName').value='';
+  draftQs=[];selIds.clear();refreshMatSel();
+}
+async function loadPub(){
+  const keys=await sl('quiz:');
+  const el=document.getElementById('pubList');el.innerHTML='';
+  if(!keys.length){
+    el.innerHTML='<div class="empty"><div class="ei">📭</div>尚未發布任何題庫<br><span style="font-size:11px;color:var(--dm);">請至「✨ 出題」頁面建立並發布題庫</span></div>';
+    return;
+  }
+  let count=0;
+  for(const k of keys){
+    const q=await sg(k);if(!q||!q.published)continue;
+    count++;
+    const canDelete=cu&&(cu.isSuperAdmin||q.createdBy===cu.id);
+    const d=document.createElement('div');d.className='qi';
+    d.innerHTML='<div class="qi-icon" style="background:#eff6ff;">📝</div>'
+      +'<div class="qi-info"><div class="qi-name">'+q.name+'</div>'
+      +'<div class="qi-meta">'+q.qCount+'題｜'+DIFF[q.diff]+'｜'+AUD[q.audience]+'｜'+q.createdBy+'</div></div>'
+      +'<span class="pill" style="background:#dcfce7;color:#16a34a;">已發布</span>';
+    if(canDelete){
+      const btn=document.createElement('button');
+      btn.type='button';btn.textContent='撤除';
+      btn.style.cssText='background:none;border:none;cursor:pointer;color:var(--rd);font-size:12px;padding:2px 8px;flex-shrink:0;';
+      btn.onclick=()=>deleteQuiz(k);
+      d.appendChild(btn);
+    }
+    el.appendChild(d);
+  }
+  if(!count) el.innerHTML='<div class="empty"><div class="ei">📭</div>尚未發布任何題庫</div>';
+}
+async function deleteQuiz(key){
+  const confirmed=prompt('確認要撤除此題庫嗎？請輸入「確認刪除」來執行：');
+  if(confirmed!=='確認刪除'){toast('已取消');return;}
+  await sr(key);toast('✅ 題庫已撤除');loadPub();
+}
+
+async function loadReview(){
+  const dF=document.getElementById('fDept').value;
+  const aF=document.getElementById('fAud').value;
+  const keys=await sl('result:'),results=[];
+  for(const k of keys){
+    const r=await sg(k);if(!r)continue;
+    // Permission filter: manager sees own team only, superadmin sees all
+    if(!cu.isSuperAdmin&&r.dept!==cu.dept) continue;
+    if(!cu.isSuperAdmin&&r.team&&cu.team&&r.team!==cu.team) continue;
+    if(dF&&r.dept!==dF) continue;
+    if(aF&&r.audience!==aF) continue;
+    results.push(r);
+  }
+  const pass=results.filter(r=>r.pass).length;
+  document.getElementById('stT').textContent=results.length;
+  document.getElementById('stP').textContent=pass;
+  document.getElementById('stF').textContent=results.length-pass;
+  document.getElementById('stR').textContent=results.length?Math.round(pass/results.length*100)+'%':'0%';
+  const depts=[...new Set(results.map(r=>r.dept))];
+  const ds=document.getElementById('fDept'),cv=ds.value;
+  ds.innerHTML='<option value="">所有部門</option>';
+  depts.forEach(dep=>{const o=document.createElement('option');o.value=dep;o.textContent=dep+(dep===cu.dept?' (本隊)':'');ds.appendChild(o);});
+  ds.value=cv;
+  const el=document.getElementById('revList');el.innerHTML='';
+  if(!results.length){el.innerHTML='<div class="empty"><div class="ei">📊</div>尚無考核紀錄</div>';return;}
+  results.sort((a,b)=>b.ts-a.ts).forEach(r=>{
+    const d=document.createElement('div');d.className='rr';
+    d.innerHTML='<div class="ra" style="background:'+(r.pass?'#dcfce7':'#fee2e2')+'">'+(r.pass?'✅':'⚠️')+'</div>'
+      +'<div class="ri"><div class="rn">'+(r.userName||r.userId)+' <span style="font-size:10px;color:var(--mu);font-family:var(--mono);">'+r.dept+'/'+(r.team||'')+'</span></div>'
+      +'<div class="rs">'+r.quizName+'｜'+(AUD[r.audience]||r.audience)+'｜'+new Date(r.ts).toLocaleDateString('zh-TW')+' '+new Date(r.ts).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})+'</div></div>'
+      +'<div class="rv '+(r.pass?'pass':'fail')+'">'+r.pct+'%<br><span style="font-size:10px;font-weight:400;">'+r.score+'/'+r.total+'</span></div>';
+    el.appendChild(d);
+  });
+}
+
+async function downloadReport(){
+  const keys=await sl('result:'),results=[];
+  for(const k of keys){
+    const r=await sg(k);if(!r)continue;
+    if(!cu.isSuperAdmin&&r.dept!==cu.dept) continue;
+    results.push(r);
+  }
+  if(!results.length){toast('尚無測驗資料可下載');return;}
+  await loadSheetJS();
+  const wsData=[['工號','姓名','單位代號','隊別','測驗名稱','測驗對象','難度','得分','總題數','百分比','是否通過','測驗日期']];
+  results.sort((a,b)=>b.ts-a.ts).forEach(r=>{
+    wsData.push([
+      r.userId, r.userName||r.userId, r.dept||'', r.team||'',
+      r.quizName, AUD[r.audience]||r.audience, DIFF[r.diff]||r.diff,
+      r.score, r.total, r.pct+'%', r.pass?'通過':'未通過',
+      new Date(r.ts).toLocaleString('zh-TW')
+    ]);
+  });
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols']=[{wch:10},{wch:8},{wch:10},{wch:8},{wch:30},{wch:12},{wch:8},{wch:6},{wch:8},{wch:8},{wch:8},{wch:20}];
+  XLSX.utils.book_append_sheet(wb,ws,'測驗結果');
+  XLSX.writeFile(wb,'測驗結果報表_'+new Date().toLocaleDateString('zh-TW').replace(/\//g,'')+'.xlsx');
+  toast('✅ 報表下載中...');
+}
+
+// ══ UTILS ══
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function showOv(msg){document.getElementById('ovTxt').textContent=msg;document.getElementById('ov').classList.add('show');}
+function hideOv(){document.getElementById('ov').classList.remove('show');}
+let toastT;
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3500);}
+
+// ══ 本機資料搬移到雲端 ══
+async function checkMigration(){
+  if(!_isNet) return;
+  if(localStorage.getItem('_migrated_v1')) return; // 已搬過
+  // 排除搬移標記本身，只收集真正的資料 key
+  const keys = [];
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i);
+    if(k && k.startsWith('quiz_') && k!=='quiz_migrated_to_cloud') keys.push(k);
+  }
+  if(!keys.length){ localStorage.setItem('_migrated_v1','1'); return; }
+  document.getElementById('migrateCount').textContent = keys.length;
+  document.getElementById('migrateModal').style.display = 'flex';
+}
+
+async function doMigrate(){
+  const btn  = document.getElementById('migratBtn');
+  const prog = document.getElementById('migrateProgress');
+  btn.disabled = true;
+  btn.textContent = '搬移中...';
+  prog.style.display = 'block';
+
+  const keys = [];
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i);
+    if(k && k.startsWith('quiz_') && k!=='quiz_migrated_to_cloud') keys.push(k);
+  }
+
+  let ok=0, fail=0, failList=[];
+  for(let i=0; i<keys.length; i++){
+    const lsKey  = keys[i];
+    const blobKey = lsKey.replace('quiz_','');
+    prog.textContent = `搬移中 ${i+1}/${keys.length}：${blobKey}`;
+    try{
+      const raw = localStorage.getItem(lsKey);
+      if(raw){
+        const val = JSON.parse(raw);
+        const r = await fetch(_API,{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({action:'blob_set',key:blobKey,value:val})});
+        const d = await r.json();
+        if(d.ok===false) throw new Error(d.error||'blob_set 回傳失敗');
+        ok++;
+      }
+    }catch(e){
+      fail++;
+      const errMsg = blobKey+': '+e.message;
+      failList.push(errMsg);
+      // 第一筆失敗就顯示錯誤讓使用者知道原因
+      if(fail===1) prog.textContent = '❌ 錯誤：'+e.message;
+    }
+  }
+
+  localStorage.setItem('_migrated_v1','1');
+  document.getElementById('migrateModal').style.display = 'none';
+
+  if(fail){
+    console.warn('搬移失敗項目：', failList);
+    toast(`⚠️ 搬移完成 ${ok} 筆，${fail} 筆失敗（見 Console）`);
+    prog.textContent = '部分失敗，2 秒後重新整理...';
+  } else {
+    toast(`✅ 搬移完成！${ok} 筆資料已上雲端，即將重新整理頁面`);
+  }
+  // 重新整理頁面，讓所有資料從雲端重新載入
+  setTimeout(()=>location.reload(), 2000);
+}
+
+function skipMigrate(){
+  localStorage.setItem('_migrated_v1','1');
+  document.getElementById('migrateModal').style.display = 'none';
+}
+
+// ══ INIT ══
+(async function(){
+  if(location.protocol!=='https:'&&location.hostname!=='localhost') document.getElementById('warnBar').classList.add('on');
+  ['lId','lCode'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});});
+  upTab('file');
+  await loadAdminList();
+  await loadStaffList();
+  await checkMigration();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "ai-training-platform",
+  "version": "1.0.0",
+  "description": "AI 現場知識驗收平台",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}
